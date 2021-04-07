@@ -1,0 +1,45 @@
+.navbar {
+  height: 65px;
+  box-sizing: border-box;
+  position: fixed;
+  z-index: 99;
+  width: 100%;
+  background-color: #201f35;
+  border-bottom: solid 2px #f9f0d9;
+}
+
+#logo{
+  height: 35px;
+}
+
+.navbar-nav{
+  justify-content: flex-end;
+  margin-left: auto;
+  margin-right: 25px;
+
+}
+.nav-item{
+  margin-left: 55px;
+}
+
+.nav-link {
+  color: #f9f0d9;
+  font-family: 'Rationale', sans-serif;
+  font-size: 23px;
+  transition: all ease-in-out 200ms;
+}
+
+#game-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.active{
+  color: #F94A41;
+}
+
+.nav-link:hover{
+  color: #F94A41;
+}
