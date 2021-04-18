@@ -1,7 +1,7 @@
 /**
  * Class for the bullet is sent by the player ship
  */
-class Asteroid extends Phaser.Physics.Arcade.Sprite {
+class AsteroidSM extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
         super(scene, 0, 0, 'asteroid_sm_0');
         this.initPhysics(); // start physics for playter -allows for movement and collision detection
@@ -25,7 +25,7 @@ class Asteroid extends Phaser.Physics.Arcade.Sprite {
             this.visible = true;
             this.y += this.speed * delta;
             if (this.y > window.innerHeight + 100) {
-                this.destroy();
+                this.kill();
             }
         } else {
             this.visible = false;

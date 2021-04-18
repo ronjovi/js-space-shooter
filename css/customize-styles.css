@@ -1,0 +1,64 @@
+.toast {
+  position: absolute;
+  right: 25px;
+  top: 120px;
+  z-index: 999999;
+  background-color: #d1e7dd;
+}
+
+.modal-header {
+  font-family: "Rationale", sans-serif;
+}
+
+.modal-header h5 {
+  font-size: 1.55rem;
+}
+
+
+#ships-container{
+  display: flex;
+  justify-content: space-between;
+}
+
+.ship{
+  border: solid 2px transparent;
+  border-radius: 8px;
+  padding: 1rem 1rem;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.ship:hover{
+  border: solid 2px #f94a41;
+}
+
+.active-ship{
+  border: solid 2px #f94a41;
+}
+
+#scene-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+#bio{
+  height: 200px;
+}
+
+#count{
+  float: right;
+}
+
+.control{
+  margin-bottom: 20px;
+}
+
+.control label,
+.control p{
+  font-family: "Rationale", sans-serif;
+  font-weight: 500;
+  font-size: 21px;
+  margin-bottom: 5px;
+}
