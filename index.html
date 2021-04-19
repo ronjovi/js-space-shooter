@@ -22,7 +22,7 @@
 
   <nav class="navbar navbar-expand-lg ">
     <div class="container-fluid">
-      <img src="images/logo.png" id="logo" alt="Space Odyssey" />
+      <img src="images/logo/logo.png" id="logo" alt="Space Odyssey" />
 
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,20 +89,28 @@
     integrity="sha512-YNN8nyYWdmEflQkSW4hrvxXpIsbxpp9R1w5mgSQtyO2WFqE9I2EnJYm5YDEDFh3DNt7UnZI5c67T306QcKcdTw=="
     crossorigin="anonymous"></script>
 
-  <!-- game imports -->
+  <!-- Game constant values-->
   <script src="js/shared/constants.js"></script>
-  <script src="js/game/scenes/Explosion.js"></script>
-  <script src="js/game/scenes/HealthBar.js"></script>
-  <script src="js/game/scenes/Bullet.js"></script>
-  <script src="js/game/scenes/Player.js"></script>
-  <script src="js/game/scenes/AsteroidSM.js"></script>
 
+  <!-- Player Health Bar  -->
+  <script src="js/shared/healthBar/HealthBar.js"></script>
+  <script src="js/shared/menus/pauseMenu.js"></script>
+  <script src="js/shared/menus/gameOverMenu.js"></script>
+  <script src="js/shared/menus/levelStartMenu.js"></script>
+  <script src="js/shared/menus/winnerMenu.js"></script>
+  <script src="js/shared/cards/ProfileCard.js"></script>
 
-  <script src="../js/shared/PlayerShipA.js"></script>
-  <script src="../js/shared/PlayerShipB.js"></script>
-  <script src="../js/shared/PlayerShipC.js"></script>
+  <!-- Game sprites -->
+  <script src="js/shared/sprites/Explosion.js"></script>
+  <script src="js/shared/sprites/Bullet.js"></script>
+  <script src="js/shared/sprites/Asteroid.js"></script>
+  <script src="/js/shared/sprites/Player.js"></script>
+
+  <!-- Game Scenes -->
   <script src="js/game/scenes/LevelOneScene.js"></script>
   <script src="js/game/scenes/StartScene.js"></script>
+
+  <!-- Game Config -->
   <script src="js/game/game-config.js"></script>
 </body>
 

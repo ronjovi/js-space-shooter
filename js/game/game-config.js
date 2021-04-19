@@ -22,7 +22,7 @@ var config = {
       debugStaticBodyColor: 0xffffff,
     },
   },
-  scene: [LevelOneScene, StartScene],
+  scene: [  LevelOneScene,StartScene,],
 };
 
 // create game instance

@@ -23,6 +23,7 @@
     hide() {
         this.setActive(false);
         this.setVisible(false);
+        this.setPosition(-100,-100);
     }
 
     update(time, delta) {

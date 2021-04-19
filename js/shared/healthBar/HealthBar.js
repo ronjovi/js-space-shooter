@@ -28,8 +28,17 @@
   
       return this.health === 0;
     }
+
+    updateHealth(damage){
+      this.currentHealth = this.currentHealth -damage;
+
+      if(this.currentHealth <= 0){
+        this.currentHealth = 0;
+      }
+    }
   
     draw() {
+      console.log("draew")
       this.bar.clear();
   
       //  BG
@@ -50,6 +59,10 @@
       const colorBarW  = healthPercent * this.width;
       const colorBarH =  this.height - 4;
       this.bar.fillRect(this.x + 2, this.y + 2, colorBarW,colorBarH);
+    }
+
+    hide(){
+      this.bar.clear();
     }
   }
   

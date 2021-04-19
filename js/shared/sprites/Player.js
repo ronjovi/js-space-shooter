@@ -2,47 +2,81 @@
  * Class for the player
  */
 class Player extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y) {
-    super(scene, x, y, "player"); // load player ship asset
+  constructor(scene, x, y, sprite) {
+    super(scene, x, y, sprite); // load player ship asset
 
-    this.health = 200;
+    this.visible = true; // show user
+    this.sprite = sprite;
     this.fireRate = PLAYER_FIRE_RATE_DEAFULT;
     this.lastBulletFired = 0;
-    this.initPlayer(scene); // start physics for playter -allows for movement and collision detection
+    this.addHealthbar(scene);
+    this.initPlayerPhysics(scene); // start physics for playter -allows for movement and collision detection
+    this.createAnimation();
   }
 
-  initPlayer(scene) {
+  /**
+   * Adds health bar for player
+   * @param {*} scene 
+   */
+  addHealthbar(scene) {
+    const height = window.innerHeight;
+    // add ship health
+    this.hp = new HealthBar(
+      scene,
+      120,
+      height - 47,
+      PLAYER_HEALTH,
+      200,
+      20
+    );
+  }
+
+  updateHealthBar(damage){
+    this.hp.updateHealth(damage);
+  }
+
+  /**
+   * Sets 
+   * @param {*} scene 
+   */
+  initPlayerPhysics(scene) {
     scene.add.existing(this); // add player to scene
     this.scene.physics.world.enable(this); // enable phyics engine on player - mainly for collisions
     this.setCollideWorldBounds(true); //
-    this.visible = true; // show user
+  }
 
+  createAnimation(){
     /**
      * CREATE and play animation for player object
      * Animation is played by default
      */
     this.scene.anims.create({
-      key: "player_anim",
-      frames: this.anims.generateFrameNumbers("player"),
+      key: "player-ship-idle",
+      frames: this.anims.generateFrameNumbers(this.sprite),
       frameRate: 20,
       repeat: -1,
     });
 
     this.playAnim();
+    this.setScale(1);
+  }
+
+  update() {
+    console.log("playere update");
   }
 
   /**
    * Pauses the player idle animation
    */
   pauseAnim() {
-    this.play("player_anim");
+    this.play("player-ship-idle");
   }
 
   /**
    * Starts playing the idle animation
    */
   playAnim() {
-    this.play("player_anim");
+    this.play("player-ship-idle");
   }
 
   /**
@@ -103,5 +137,13 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.lastBulletFired = time + this.fireRate; // update fire delay timestamp
       }
     }
+  }
+
+  decreaseHealth(damage) {
+    this.health = this.health - damage;
+  }
+
+  hideHP(){
+    
   }
 }

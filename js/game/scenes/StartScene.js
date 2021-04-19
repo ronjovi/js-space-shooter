@@ -1,3 +1,5 @@
+const LOGO_OFFSET = 150;
+
 /**
  * Scene that has the content and logic for the game scene
  * This is where the user gets to control their ship and shoot enemies
@@ -91,8 +93,11 @@ class StartScene extends Phaser.Scene {
      * Start Link - starts the game
      * Instructions Link - shows instructions
      */
-    this.addProfile();
-    this.addLogo(width, height);
+    //this.addProfile();
+    this.profileCard = new ProfileCard(this);
+    this.addEmbarkBtn();
+    this.addBackBtn();
+    this.addLogo(width);
     this.addStart(width, height);
     this.addInstructions(width, height);
 
@@ -113,7 +118,7 @@ class StartScene extends Phaser.Scene {
    * @param {*} width
    * @param {*} height
    */
-  addLogo(width, height) {
+  addLogo(width) {
     //styles
     const styles = {
       fontFamily: "Rationale",
@@ -127,7 +132,7 @@ class StartScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     // update pos
-    this.logo.setPosition(width / 2 - this.logo.width / 2, height * 0.25);
+    this.logo.setPosition(width / 2 - this.logo.width / 2, LOGO_OFFSET);
   }
 
   /**
@@ -154,14 +159,19 @@ class StartScene extends Phaser.Scene {
      */
     this.start.on("pointerdown", () => {
       this.hideMenu();
-      this.showProfile();
+      this.profileCard.show(this);
+      this.showBtns(width, height);
     });
 
     /**
      * changes start color to red on hover
      */
     this.start.on("pointerover", () => {
-      const styles = { fontFamily: "Rationale", fontSize: 26, color: "F94A41" }; // start styles
+      const styles = {
+        fontFamily: "Rationale",
+        fontSize: 26,
+        color: "#F94A41",
+      }; // start styles
       this.start.setStyle(styles);
     });
 
@@ -237,83 +247,46 @@ class StartScene extends Phaser.Scene {
     });
   }
 
-  addProfile() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+  showBtns(width) {
 
-    this.gameSceneGraphics.lineStyle(2, 0xf9f0d9, 1);
-    this.profileContainer = this.gameSceneGraphics.strokeRoundedRect(
-      width / 2 - 150,
-      height / 2 - 150,
-      300,
-      400,
-      10
-    );
+    this.embarkBtn
+      .setPosition(width / 2 + this.embarkBtn.width / 1.5, 575)
+      .setActive(true)
+      .setVisible(true)
+      .setInteractive({ useHandCursor: true });
 
-    // styles for score text
-    const styles = {
-      fontFamily: "Rationale",
-      fontSize: 26,
-      color: "#F9F0D9",
-      wordWrap: { width: 250, useAdvancedWrap: true },
-    };
-
-    // styles for score label
-    const labelStyles = {
-      fontFamily: "Rationale",
-      fontSize: 21,
-      color: "#F94A41",
-    };
-
-    // add score label to scene
-    this.nameLabel = this.add
-      .text(0, 0, "NAME:", labelStyles)
-      .setPosition(width / 2 - 138, height * 0.37);
-
-    // add score text to scene
-    this.name = this.add
-      .text(0, 0, this.profile.name.substring(0, 25), styles)
-      .setPosition(width / 2 - 120, height * 0.4);
-
-    //
-    this.phraseLabel = this.add
-      .text(0, 0, "CATCH PHRASE:", labelStyles)
-      .setPosition(width / 2 - 138, height * 0.45);
-
-    //
-    this.phrase = this.add
-      .text(0, 0, this.profile.phrase.substring(0, 50), styles)
-      .setPosition(width / 2 - 120, height * 0.48);
-
-    //
-    this.scoreLabel = this.add
-      .text(0, 0, "HIGHEST SCORE:", labelStyles)
-      .setPosition(width / 2 - 138, height * 0.55);
-
-    //
-    this.score = this.add
-      .text(0, 0, this.profile.score, styles)
-      .setPosition(width / 2 - 120, height * 0.58);
-
-    //
-    this.shipLabel = this.add
-      .text(0, 0, "SHIP:", labelStyles)
-      .setPosition(width / 2 - 138, height * 0.62);
-
-    this.addPlayerShip(width, height);
-
-    this.addEmbarkBtn(width, height);
-    this.addBackBtn(width, height);
-
-    this.hideProfile();
+    this.backBtn
+      .setPosition(width / 2 - this.backBtn.width / 1.5, 575)
+      .setVisible(true)
+      .setActive(true)
+      .setInteractive({ useHandCursor: true });
   }
 
-  addEmbarkBtn(width, height) {
+  hideBtns() {
+    this.embarkBtn
+      .setPosition(0, 0)
+      .setActive(false)
+      .setVisible(false)
+      .setInteractive(false);
+
+    this.backBtn
+      .setPosition(0, 0)
+      .setVisible(false)
+      .setActive(false)
+      .setInteractive(false);
+  }
+
+  /**
+   *
+   * @param {*} width
+   * @param {*} height
+   */
+  addEmbarkBtn() {
     // adds edit button to the scene
     this.embarkBtn = this.add
-      .sprite(width / 2 + 140, height * 0.8, "embark")
-      .setInteractive({ useHandCursor: true })
-      .setScale(0.9);
+      .sprite(0, 0, "embark")
+      .setActive(false)
+      .setVisible(false);
 
     /**
      * adds on click event handler to the ship swap button
@@ -321,7 +294,8 @@ class StartScene extends Phaser.Scene {
      */
     this.embarkBtn.on("pointerdown", () => {
       $("#game-loader").css({ opacity: 1, display: "flex" });
-      this.scene.start("GameScene");
+      this.scene.start("LevelOneScene");
+      console.log("embark");
     });
 
     /**
@@ -341,19 +315,24 @@ class StartScene extends Phaser.Scene {
     });
   }
 
-  addBackBtn(width, height) {
+  /**
+   *
+   * @param {*} width
+   * @param {*} height
+   */
+  addBackBtn() {
     // adds edit button to the scene
     this.backBtn = this.add
-      .sprite(width / 2 - 140, height * 0.8, "go-back")
-      .setInteractive({ useHandCursor: true })
-      .setScale(0.9);
+      .sprite(0, 0, "go-back")
+      .setActive(false)
+      .setVisible(false);
 
     /**
      * adds on click event handler to the ship swap button
      * opens modal where user can select their ship
      */
     this.backBtn.on("pointerdown", () => {
-      this.hideProfile();
+      this.profileCard.hide();
       this.showMenu();
     });
 
@@ -374,116 +353,34 @@ class StartScene extends Phaser.Scene {
     });
   }
 
-  addPlayerShip() {
-    // get viewport dimension
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    /**
-     * Adds the player's ship to the scene
-     */
-    if (this.profile.ship === "player-ship-a") {
-      // add ship a
-      this.player = new PlayerShipA(this, width / 2, height * 0.7).setScale(
-        0.5
-      );
-    } else if (this.profile.ship === "player-ship-b") {
-      // add ship b
-      this.player = new PlayerShipB(this, width / 2, height * 0.7).setScale(
-        0.5
-      );
-    } else if (this.profile.ship === "player-ship-c") {
-      // add ship c
-      this.player = new PlayerShipC(this, width / 2, height * 0.7).setScale(
-        0.5
-      );
-    }
-  }
-
+  /**
+   *
+   */
   showMenu() {
+    this.logo.setVisible(true);
+    this.logo.setActive(true);
+
     this.start.setVisible(true);
     this.start.setActive(true);
 
     this.instructions.setVisible(true);
     this.instructions.setActive(true);
+
+    this.hideBtns();
   }
 
+  /**
+   *
+   */
   hideMenu() {
+    this.logo.setVisible(false);
+    this.logo.setActive(false);
+
     this.start.setVisible(false);
     this.start.setActive(false);
 
     this.instructions.setVisible(false);
     this.instructions.setActive(false);
-  }
-
-  showProfile() {
-    this.nameLabel.setVisible(true);
-    this.nameLabel.setActive(true);
-
-    this.name.setVisible(true);
-    this.name.setActive(true);
-
-    this.phraseLabel.setVisible(true);
-    this.phraseLabel.setActive(true);
-
-    this.phrase.setVisible(true);
-    this.phrase.setActive(true);
-
-    this.scoreLabel.setVisible(true);
-    this.scoreLabel.setActive(true);
-
-    this.score.setVisible(true);
-    this.score.setActive(true);
-
-    this.shipLabel.setVisible(true);
-    this.shipLabel.setActive(true);
-
-    this.player.setVisible(true);
-    this.player.setActive(true);
-
-    this.embarkBtn.setVisible(true);
-    this.embarkBtn.setActive(true);
-
-    this.backBtn.setVisible(true);
-    this.backBtn.setActive(true);
-
-    this.profileContainer.setVisible(true);
-    this.profileContainer.setActive(true);
-  }
-
-  hideProfile() {
-    this.nameLabel.setVisible(false);
-    this.nameLabel.setActive(false);
-
-    this.name.setVisible(false);
-    this.name.setActive(false);
-
-    this.phraseLabel.setVisible(false);
-    this.phraseLabel.setActive(false);
-
-    this.phrase.setVisible(false);
-    this.phrase.setActive(false);
-
-    this.scoreLabel.setVisible(false);
-    this.scoreLabel.setActive(false);
-
-    this.score.setVisible(false);
-    this.score.setActive(false);
-
-    this.shipLabel.setVisible(false);
-    this.shipLabel.setActive(false);
-
-    this.player.setVisible(false);
-    this.player.setActive(false);
-
-    this.embarkBtn.setVisible(false);
-    this.embarkBtn.setActive(false);
-
-    this.backBtn.setVisible(false);
-    this.backBtn.setActive(false);
-
-    this.profileContainer.setVisible(false);
-    this.profileContainer.setActive(false);
   }
 
   /**
@@ -497,11 +394,18 @@ class StartScene extends Phaser.Scene {
     this.cameras.resize(width, height);
     this.bg.setSize(width, height);
 
-    this.logo.setPosition(width / 2 - this.logo.width / 2, height * 0.3); // centers logo
-    this.start.setPosition(width / 2 - this.start.width / 2, height * 0.4); // centers start
+    this.logo.setPosition(width / 2 - this.logo.width / 2, LOGO_OFFSET);
+    this.profileCard.resize(this, width);
+
+    this.backBtn.setPosition(width / 2 - this.backBtn.width / 1.5, 575);
+    this.embarkBtn.setPosition(width / 2 + this.embarkBtn.width / 1.5, 575);
+
+    // update pos
+    this.start.setPosition(width / 2 - this.start.width / 2, height * 0.35);
+    // update pos
     this.instructions.setPosition(
       width / 2 - this.instructions.width / 2,
-      height * 0.45
-    ); // centers instructions
+      height * 0.4
+    );
   }
 }
