@@ -5,6 +5,8 @@ class WinnerMenu {
   constructor(scene) {
     this.message = LEVEL_WINNER_MESSAGE;
 
+    this.summaryCard = new LevelSummaryCard(scene, 0);
+
     this.winner = scene.add
       .text(0, 0, "LEVEL COMPLETE!", MENU_GAME_OVER_STYLES)
       .setVisible(false)
@@ -58,8 +60,8 @@ class WinnerMenu {
 
     // quits the game
     this.quitLink.on("pointerdown", () => {
-      document.querySelector("#game-loader").style.opacity = 1;
-      document.querySelector("#game-loader").style.display = "flex";
+      document.querySelector("#loader").style.opacity = 1;
+      document.querySelector("#loader").style.display = "flex";
       scene.quitGame();
     });
 
@@ -92,6 +94,7 @@ class WinnerMenu {
     this.restartLink.setVisible(false).setDepth(-1).setInteractive(false);
     this.quitLink.setVisible(false).setDepth(-1).setInteractive(false);
     this.summary.setVisible(false).setDepth(-1);
+    this.summaryCard.hide();
   }
 
   /**
@@ -106,30 +109,45 @@ class WinnerMenu {
 
     // make game over text visible
     this.winner
-      .setPosition(width / 2 - this.winner.width / 2, height * 0.1)
+      .setPosition(width / 2 - this.winner.width / 2, 100)
       .setVisible(true)
       .setDepth(3);
 
+    // re position animated text box and start it while hidden
     this.summary
-      .setPosition(width / 2 - this.summary.width / 2, height * 0.2)
+      .setPosition(
+        width / 2 - this.summary.width / 2,
+        this.winner.y + this.winner.height + 20
+      )
       .setDepth(3)
       .start(this.message, 10);
 
     // make restart link visible
     this.restartLink
-      .setPosition(width / 2 - this.restartLink.width / 2, height * 0.55)
+      .setPosition(
+        width / 2 - this.restartLink.width / 2,
+        475
+      )
       .setVisible(true)
       .setInteractive({ useHandCursor: true })
       .setDepth(3);
 
+    // make quit link visible
     this.quitLink
-      .setPosition(width / 2 - this.quitLink.width / 2, height * 0.6)
+      .setPosition(
+        width / 2 - this.quitLink.width / 2,
+        this.restartLink.y + this.restartLink.height + 16
+      )
       .setVisible(true)
       .setDepth(3)
       .setInteractive({ useHandCursor: true });
 
+    this.summaryCard.show(400);
+
+    // show the animated text box
     setTimeout(() => {
       this.summary.setVisible(true);
+      // show summary card
     }, 1);
   };
 
@@ -142,8 +160,8 @@ class WinnerMenu {
    * @returns
    */
   createTextBox(scene, x, y) {
-    const wrapWidth = 300;
-    const fixedWidth = 300;
+    const wrapWidth = 600;
+    const fixedWidth = 600;
     const fixedHeight = 0;
 
     let textBox = scene.rexUI.add
@@ -190,5 +208,28 @@ class WinnerMenu {
       },
       maxLines: 10,
     });
+  }
+
+  resize(width, height) {
+    // make game over text visible
+    this.winner.setPosition(width / 2 - this.winner.width / 2, 100);
+
+    this.summary.setPosition(
+      width / 2 - this.summary.width / 2,
+      this.winner.y + this.winner.height + 20
+    );
+
+    // make restart link visible
+    this.restartLink.setPosition(
+      width / 2 - this.restartLink.width / 2,
+      475
+    );
+
+    this.quitLink.setPosition(
+      width / 2 - this.quitLink.width / 2,
+      this.restartLink.y + this.restartLink.height + 16
+    );
+
+    this.summaryCard.resize(400, width);
   }
 }

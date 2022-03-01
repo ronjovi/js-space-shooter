@@ -1,5 +1,5 @@
 /**
- * Class for the player
+ * Class for the confirmation button
  */
 class ConfirmButton extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {

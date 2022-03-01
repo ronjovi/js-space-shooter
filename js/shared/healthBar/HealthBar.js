@@ -38,7 +38,6 @@
     }
   
     draw() {
-      console.log("draew")
       this.bar.clear();
   
       //  BG

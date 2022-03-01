@@ -4,9 +4,9 @@
  class Bullet extends Phaser.Physics.Arcade.Image {
     constructor(scene, x, y) {
         super(scene, 0, 0, 'player-bullet');
-        this.initPhysics(); // start physics for playter -allows for movement and collision detection
+        this.initPhysics();
         this.speed = BULLET_SPEED_DEFAULT;
-        console.log(this.speed)
+        this.setVisible(true)
     }
 
     initPhysics() {
@@ -22,8 +22,7 @@
 
     hide() {
         this.setActive(false);
-        this.setVisible(false);
-        this.setPosition(-100,-100);
+        this.setPosition(-5000,-5000);
     }
 
     update(time, delta) {

@@ -8,17 +8,6 @@ class LevelOneScene extends Phaser.Scene {
     super({
       key: "LevelOneScene",
     });
-
-    // USER PROFILE
-    this.profile = PLAYER_PLACEHOLDER;
-    // GAME STATE
-    this.isPaused = false;
-    this.isReady = false;
-    this.level = 1;
-    this.score = 0;
-    this.integrity = 1;
-    this.clockTime = 1; //LEVEL_ONE_TIME;
-    this.asteroidSpawnDelay = 500;
   }
 
   /**
@@ -27,13 +16,20 @@ class LevelOneScene extends Phaser.Scene {
   loadProfile() {
     if (localStorage.profile) {
       this.profile = JSON.parse(localStorage.profile);
+    } else {
+      // USER PROFILE
+      this.profile = PLAYER_PLACEHOLDER;
     }
   }
 
   /**
-   *
+   * Load game assets
    */
   preload() {
+    // load user data from local storage
+    this.loadProfile();
+
+    // loads plugin for auto text scroller
     this.load.scenePlugin({
       key: "rexuiplugin",
       url:
@@ -41,34 +37,46 @@ class LevelOneScene extends Phaser.Scene {
       sceneKey: "rexUI",
     });
 
-    this.loadProfile();
-
     // load space background
     this.load.image(
       "level-one-background",
-      "../../images/backgrounds/lvl_one_background.png"
+      "https://temp-assets-t.s3-us-west-1.amazonaws.com/lvl_one_background.png"
     );
 
     // load start btn
-    this.load.spritesheet("start-btn", "../../images/gui/start-btn.png", {
-      frameWidth: 124,
-      frameHeight: 34.62,
-    });
+    this.load.spritesheet(
+      "start-btn",
+      "https://temp-assets-t.s3-us-west-1.amazonaws.com/start-btn.png",
+      {
+        frameWidth: 124,
+        frameHeight: 34.62,
+      }
+    );
 
     // load small asteroid
     this.load.spritesheet(
       SM_ASTEROID_SPRITE,
-      "../../images/asteroids/asteroid_sm_1.png",
+      "https://temp-assets-t.s3-us-west-1.amazonaws.com/asteroid_sm_1.png",
       {
         frameWidth: SM_ASTEROID_W,
         frameHeight: SM_ASTEROID_H,
       }
     );
 
+    // load large asteroid
+    this.load.spritesheet(
+      LG_ASTEROID_SPRITE,
+      "https://temp-assets-t.s3-us-west-1.amazonaws.com/asteroid_LG.png",
+      {
+        frameWidth: LG_ASTEROID_W,
+        frameHeight: LG_ASTEROID_H,
+      }
+    );
+
     // loads explosion sprite
     this.load.spritesheet(
       "explosion",
-      "../../images/explosions/explosion.png",
+      "https://temp-assets-t.s3-us-west-1.amazonaws.com/explosion.png",
       { frameWidth: 100, frameHeight: 99.88 }
     );
 
@@ -113,7 +121,7 @@ class LevelOneScene extends Phaser.Scene {
   }
 
   /**
-   *
+   * Creates all game objects and adds them to the scene
    */
   create() {
     /**
@@ -121,8 +129,6 @@ class LevelOneScene extends Phaser.Scene {
      */
     const width = window.innerWidth;
     const height = window.innerHeight;
-
-    this.clockTime = 1;
 
     // get graphics for create method
     this.gameSceneGraphics = this.add.graphics();
@@ -155,8 +161,11 @@ class LevelOneScene extends Phaser.Scene {
     // creates the player ship sprite for game
     this.addPlayer();
 
-    this.createCollisionHandlers(); // creates collision events for game objects
-    this.addHUD(height, width); // adds HUD to game
+    // creates collision events for game objects
+    this.createCollisionHandlers();
+
+    // adds HUD to game
+    this.addHUD(height, width);
 
     // this.addActionButtons
     this.hideLoader(); // hide the spinner
@@ -164,28 +173,24 @@ class LevelOneScene extends Phaser.Scene {
     // set the resize listener and callback
     this.scale.on("resize", this.resize, this);
 
-    // DEBUG
-    this.gameSceneGraphics
-      .lineStyle(2, 0x00ffff, 2)
-      .strokeRectShape(this.player.body.customBoundsRectangle)
-      .setVisible(true)
-      .setDepth(3);
+    // sets init values for game state
+    this.sceneInit();
   }
 
   /**
-   *
-   * @param {*} time
-   * @param {*} delta
+   * Updates the state of the game and game objects. Updates the
+   * HUD (score, timer). Moves the background y position to simulate a
+   * auto scroller. also listens for player input and collisions between
+   * player, bullets, and asteroids
+   * @param {number} time time elapsed in ms
+   * @param {number} delta time difference in ms between current update call and last update call
    */
   update(time, delta) {
-    // update values of GUI text
-    this.levelText.setText(`${this.level}`);
     this.scoreText.setText(`${this.score}`);
     this.timeHUD.setText(`Time Left: ${this.clockTime}`);
-    this.hp.setText(`${this.player.hp.currentHealth}`);
 
     if (!this.isPaused && this.isReady) {
-      if (this.player.hp.currentHealth > 0) {
+      if (!this.isGameOver) {
         // scroll the background down
         this.bg.tilePositionY -= 2.5;
         // check for player input
@@ -194,10 +199,27 @@ class LevelOneScene extends Phaser.Scene {
         this.asteroidSpawnHandler(time, delta);
 
         if (this.clockTime === 0) {
-          this.gameOverHandler();
+          // timer hits 0
+          this.levelCompleteHandler();
         }
       }
     }
+  }
+
+  /**
+   * Sets the initila values for the game
+   * By default users start in the mission brief menu
+   */
+  sceneInit() {
+    this.isPaused = false; // tracks pause state
+    this.isReady = false; // true once user clicks start button
+    this.isGameOver = false; // true when user runs out of health
+    this.level = 1;
+    this.score = 0; // score for the level
+    this.clockTime = LEVEL_ONE_TIME; // level countdown 120 secs
+    this.lastSMSpawn = 0;
+    this.lastLGSpawn = 0; //15000;
+    this.startMenu.show(this);
   }
 
   /**
@@ -216,39 +238,11 @@ class LevelOneScene extends Phaser.Scene {
   }
 
   /**
-   * Decrement the clock time by 1
+   * Decrement the clock time by 1 sec
    * clockTime value is in seconds
    */
   decrementClock() {
     this.clockTime -= 1;
-    //console.log("Countdown: " + this.formatTime(this.clockTime));
-  }
-
-  /**
-   *
-   * @param {*} seconds
-   * @returns
-   */
-  formatTime(seconds) {
-    //console.log(seconds);
-    // Minutes
-    var minutes = Math.floor(seconds / 60);
-    // Seconds
-    var partInSeconds = seconds % 60;
-    // Adds left zeros to seconds
-    partInSeconds = partInSeconds.toString().padStart(2, "0");
-    // Returns formated time
-    return `${minutes}:${partInSeconds}`;
-  }
-
-  /**
-   *
-   * @returns
-   */
-  getSeconds() {
-    let elapsedTime = this.gameClock.getElapsedSeconds();
-    let minutes = Math.floor(elapsedTime / 60);
-    return Math.floor(elapsedTime - minutes * 60);
   }
 
   /**
@@ -296,6 +290,7 @@ class LevelOneScene extends Phaser.Scene {
       this.player.fireBullet(time, this.bullets);
     }
 
+    // listen for player pause
     if (this.keyP.isDown) {
       if (!this.isPaused) {
         this.gameClock.paused = true;
@@ -315,12 +310,12 @@ class LevelOneScene extends Phaser.Scene {
    * changes display to none after 300ms - we wait for fade out to finish
    */
   hideLoader() {
-    document.querySelector("#game-loader").style.opacity = 0; // fade out loader
+    document.querySelector("#loader").style.opacity = 0; // fade out loader
 
     // give the loader element enough time to transition to 0 opacity (300ms)
     // then hide element
     setTimeout(() => {
-      document.querySelector("#game-loader").style.display = "none";
+      document.querySelector("#loader").style.display = "none";
     }, 300);
   }
 
@@ -343,15 +338,31 @@ class LevelOneScene extends Phaser.Scene {
    *    - Creates small asteroid - 10 max
    */
   createAsteroids() {
-    // list of small asteroids - max 10
+    // list of small asteroids - max 20
     this.asteroids_SM_1 = this.add.group({
       classType: Asteroid, // asteroid sprite
-      maxSize: SM_ASTEROID_MAX, // 10
+      maxSize: SM_ASTEROID_MAX, // 20
       runChildUpdate: true, // runs the asteroid update function on every frame
       createCallback: function (obj) {
         obj.setTexture(SM_ASTEROID_SPRITE); // set texture to small asteroid
         obj.setBodySize(SM_ASTEROID_W, SM_ASTEROID_H); // update body width + height
         obj.health = SM_ASTEROID_HEALTH; // set asteroid health to 3
+        obj.speed = SM_ASTEROID_SPEED; // set default speed;
+      },
+    });
+
+    // list of small asteroids - max 10
+    this.asteroids_LG_1 = this.add.group({
+      classType: Asteroid, // asteroid sprite
+      maxSize: LG_ASTEROID_MAX, // 10
+      runChildUpdate: true, // runs the asteroid update function on every frame
+      createCallback: function (obj) {
+        obj.setTexture(LG_ASTEROID_SPRITE); // set texture to small asteroid
+        obj.setBodySize(LG_ASTEROID_W, LG_ASTEROID_H); // update body width + height
+        obj.health = LG_ASTEROID_HEALTH; // set asteroid health to 3
+        obj.speed = LG_ASTEROID_SPEED; // set default speed;
+        obj.setScale(1.7);
+        obj.setDepth(3);
       },
     });
   }
@@ -411,14 +422,17 @@ class LevelOneScene extends Phaser.Scene {
   }
 
   /**
-   *
+   * Listens for collisions in game.
+   * player and asteroid ->  player loses health
+   * bullet and asteroid -> asteroid loses health/gets destroyed
    */
   createCollisionHandlers() {
     /**
-     * CREATE collision event between a bullet and asteroid
+     * CREATE collision event between a bullet and small asteroid
      * Whenever a bullet hits an asteroid:
      *  1. show an explosion and play explosion animation (if we can!)
      *  2. remove bullet from game
+     *  3. If asteroid is out of health remove it
      */
     this.physics.add.collider(
       this.bullets,
@@ -431,11 +445,75 @@ class LevelOneScene extends Phaser.Scene {
           explosion.show(bullet.x, bullet.y);
         }
 
+        this.score += 10;
         bullet.hide();
-        asteroid.collisionHandler();
+
+        asteroid.health -= 1;
+        switch (asteroid.health) {
+          case 2:
+            asteroid.setFrame(1);
+            break;
+          case 1:
+            asteroid.setFrame(2);
+            break;
+          default:
+            this.score += 50; // bonus on asteroid kill
+            asteroid.destroy();
+        }
       }
     );
 
+    /**
+     * CREATE collision event between a bullet and large asteroid
+     * Whenever a bullet hits an asteroid:
+     *  1. show an explosion and play explosion animation (if we can!)
+     *  2. remove bullet from game
+     *  3. If asteroid is out of health remove it
+     */
+    this.physics.add.collider(
+      this.bullets,
+      this.asteroids_LG_1,
+      (bullet, asteroid) => {
+        const explosion = this.asteroidHitExplosions.get();
+
+        // show explosion and then for 350ms to remove explosion
+        if (explosion) {
+          explosion.show(bullet.x, bullet.y);
+        }
+
+        this.score += 10;
+        bullet.hide();
+
+        asteroid.health -= 1;
+        switch (asteroid.health) {
+          case 5:
+            asteroid.setFrame(1);
+            break;
+          case 4:
+            asteroid.setFrame(2);
+            break;
+          case 3:
+            asteroid.setFrame(3);
+            break;
+          case 2:
+            asteroid.setFrame(4);
+            break;
+          case 1:
+            asteroid.setFrame(5);
+            break;
+          default:
+            this.score += 100; // bonus on asteroid kill
+            asteroid.destroy();
+        }
+      }
+    );
+
+    /**
+     * CREATE collision event between a player and small asteroid
+     * Whenever a asteroid hits the player:
+     *  1. show an explosion and play explosion animation (if we can!)
+     *  2. remove asteroid from game
+     */
     this.physics.add.collider(
       this.player,
       this.asteroids_SM_1,
@@ -448,7 +526,35 @@ class LevelOneScene extends Phaser.Scene {
         }
 
         asteroid.hide();
-        player.updateHealthBar(asteroid.health * 500);
+        player.updateHealthBar(asteroid.health * 15);
+        // update player health bar
+        this.player.hp.draw();
+
+        if (player.hp.currentHealth === 0) {
+          this.gameOverHandler();
+        }
+      }
+    );
+
+    /**
+     * CREATE collision event between a player and large asteroid
+     * Whenever a asteroid hits the player:
+     *  1. show an explosion and play explosion animation (if we can!)
+     *  2. remove asteroid from game
+     */
+    this.physics.add.collider(
+      this.player,
+      this.asteroids_LG_1,
+      (player, asteroid) => {
+        const explosion = this.playerHitExplosions.get();
+
+        // show explosion and then for 350ms to remove explosion
+        if (explosion) {
+          explosion.show(asteroid.x, asteroid.y + asteroid.width / 2);
+        }
+
+        asteroid.hide();
+        player.updateHealthBar(asteroid.health * 20);
         // update player health bar
         this.player.hp.draw();
 
@@ -460,18 +566,37 @@ class LevelOneScene extends Phaser.Scene {
   }
 
   /**
-   *
+   * shows game over menu when player runs out of health
    */
   gameOverHandler() {
+    this.gameOverMenu.summaryCard.updateScore(this.score);
+    this.gameOverMenu.show(this);
+    this.isPaused = false;
+    this.isReady = false;
+    this.gameClock.paused = true;
+    this.player.setVelocity(0);
+    this.isGameOver = true;
+    this.uploadScore(this.profile, this.score);
+  }
+
+  /**
+   * Shows winner menu when game timer runs out
+   */
+  levelCompleteHandler() {
+    this.winnerMenu.summaryCard.updateScore(this.score);
     this.winnerMenu.show(this);
     this.isPaused = false;
     this.isReady = false;
     this.gameClock.paused = true;
     this.player.setVelocity(0);
+    this.isGameOver = true;
+    this.uploadScore(this.profile, this.score);
   }
 
+  /**
+   * Resets all game values to play the level again
+   */
   resetGame() {
-    console.log("reset");
     /**
      * GET VIEWPORT DIMENSIONS
      */
@@ -480,15 +605,13 @@ class LevelOneScene extends Phaser.Scene {
 
     this.isPaused = false;
     this.isReady = false;
-
+    this.isGameOver = false;
+    this.score = 0;
+    this.gameOverMenu.summaryCard.updateScore(this.score);
     this.player.setPosition(width / 2, height - 260);
-
     this.clockTime = LEVEL_ONE_TIME;
-
     this.player.hp.currentHealth = PLAYER_HEALTH;
-
     this.player.hp.draw();
-
     this.startMenu.show(this);
   }
 
@@ -508,16 +631,11 @@ class LevelOneScene extends Phaser.Scene {
     // styles for the score and level values
     const styles = { fontFamily: "Rationale", fontSize: 23, color: "#fff" };
 
-    this.hp = this.add.text(
-      30,
-      window.innerHeight - 50,
-      `${this.player.health}: `,
-      {
-        fontFamily: "Rationale",
-        fontSize: 23,
-        color: "#fff",
-      }
-    );
+    this.hp = this.add.text(30, window.innerHeight - 50, `Integrity: `, {
+      fontFamily: "Rationale",
+      fontSize: 23,
+      color: "#fff",
+    });
 
     // add score label
     this.add.text(30, 75, "Score: ", styles);
@@ -525,11 +643,15 @@ class LevelOneScene extends Phaser.Scene {
     this.add.text(30, 105, "Level: ", styles);
 
     // add profile name
-    this.profileHUD = this.add.text(0, 0, `${this.profile.name}`, styles);
+    this.profileHUD = this.add.text(
+      0,
+      0,
+      `${this.profile.name.substring(0, 25)}`,
+      styles
+    );
     this.profileHUD.setPosition(width - 40 - this.profileHUD.width, 75);
-
     this.timeHUD = this.add.text(0, 0, `Time Left: ${this.clockTime}`, styles);
-    this.timeHUD.setPosition(width - 40 - this.timeHUD.width, 105);
+    this.timeHUD.setPosition((width + 15) - this.timeHUD.width, 105);
 
     // add the text for score, level value
     this.scoreText = this.add.text(90, 75, "0", styles);
@@ -557,20 +679,16 @@ class LevelOneScene extends Phaser.Scene {
   }
 
   /**
-   * CREATE the animations for the game objects
-   * Some will be started by default others will start on show()
-   */
-  createAnimations() {}
-
-  /**
-   *
-   * @param {*} time
-   * @param {*} delta
+   * If the asteroid delay has passed and there
+   * are avaiilable aasteroid in our collection of asteroids,
+   * move dead asteroid to top of scene and reactivate it to simulate
+   * a new asteroid spawn
+   * @param {number} time time elaspsed in ms
    */
   asteroidSpawnHandler(time) {
-    if (time > this.asteroidSpawnDelay) {
-      // get avaiable asteroid in list -
-      // Is undefined if there arent any
+    // has enough time elaspsed since last spawn
+    if (time > this.lastSMSpawn) {
+      // check for avaiable asteroid
       const asteroid = this.asteroids_SM_1.get();
 
       if (asteroid) {
@@ -580,7 +698,27 @@ class LevelOneScene extends Phaser.Scene {
           width - HORIZONTAL_BOUNDARY_OFFSET
         );
         asteroid.spawn(x);
-        this.asteroidSpawnDelay = time + SM_ASTEROID_SPAWN_DELAY;
+        asteroid.health = SM_ASTEROID_HEALTH;
+        asteroid.setFrame(0);
+        this.lastSMSpawn = time + SM_ASTEROID_SPAWN_DELAY;
+      }
+    }
+
+    // has enough time elaspsed since last spawn
+    if (time > this.lastLGSpawn) {
+      // check for avaiable asteroid
+      const asteroid = this.asteroids_LG_1.get();
+
+      if (asteroid) {
+        const width = window.innerWidth;
+        const x = Phaser.Math.Between(
+          HORIZONTAL_BOUNDARY_OFFSET,
+          width - HORIZONTAL_BOUNDARY_OFFSET
+        );
+        asteroid.spawn(x);
+        asteroid.health = LG_ASTEROID_HEALTH;
+        asteroid.setFrame(0);
+        this.lastLGSpawn = time + LG_ASTEROID_SPAWN_DELAY;
       }
     }
   }
@@ -594,43 +732,31 @@ class LevelOneScene extends Phaser.Scene {
     var width = window.innerWidth;
     var height = window.innerHeight;
 
-    //
+    // update game size and background size
     this.cameras.resize(width, height);
-
-    //
     this.resizeBackground(width);
 
-    //
+    // updates the inbisible boundry around player
     this.player.body.setBoundsRectangle(
       new Phaser.Geom.Rectangle(145, 145, width - 290, height - 260)
     );
 
-    this.gameSceneGraphics
-      .lineStyle(2, 0x00ffff, 2)
-      .strokeRectShape(this.player.body.customBoundsRectangle)
-      .setDepth(3);
-
     // adds instructions to bottom of screen
     this.instructionsSm.setPosition(width - 185, height - 60);
 
-    //
+    // Updates HUD position
     this.profileHUD.setPosition(width - 40 - this.profileHUD.width, 75);
-    //
     this.timeHUD.setPosition(width - 40 - this.timeHUD.width, 105);
 
+    // updates start menu
     if (!this.isReady) {
       this.showOverlay(width, height, 0.85);
+      this.startMenu.resize(width, height);
+    }
 
-      this.startMenu.startBtn.setPosition(
-        width / 2,
-        this.startMenu.startMessageBox.y +
-          this.startMenu.startMessageBox.height +
-          30
-      );
-      this.startMenu.startMessageBox.setPosition(
-        width / 2 - 125,
-        height * 0.45
-      );
+    // updates game over menu
+    if (this.isGameOver) {
+      this.winnerMenu.resize(width, height);
     }
   }
 
@@ -651,5 +777,61 @@ class LevelOneScene extends Phaser.Scene {
   quitGame() {
     // this.player.hp.destroy();
     this.scene.start("StartScene");
+  }
+
+
+  /**
+   * Shows toast message
+   * Can be green for server req success, red for server req error
+   * @param {string} msg message from server
+   * @param {string} type response type (success/error)
+   */
+  showToast(msg, type) {
+    $("#alert-msg").text(msg);
+
+    // detect the type of alert
+    if (type === "error") {
+      $("#toast").addClass("bg-danger");
+    } else {
+      $(".bg-danger").removeClass("bg-danger");
+    }
+
+    // set fade in / fade out animation
+    $(".toast").animate({ opacity: 1 }, function () {
+      setTimeout(() => {
+        $(this).animate({ opacity: 0 });
+      }, 2500);
+    });
+  }
+
+  uploadScore(player, score) {
+    const payload = {
+      ...player,
+      score: score,
+    };
+
+    $.ajax({
+      type: "POST",
+      contentType: "application/json",
+      url: "https://ronjovi-server.herokuapp.com/rob/space-odyssey/scores",
+      data: JSON.stringify(payload),
+      dataType: "json",
+      success:  (res) => {
+        this.uploadStorageScore(player,score);
+        this.showToast("Score uploaded successfully!", "success");
+      },
+      error: (error) => {
+        // show error message
+        this.showToast(error.responseJSON.message, "error");
+      },
+    });
+  }
+
+  uploadStorageScore(player, score){
+    if(player.score < score){
+      player.score =score;
+      const str = JSON.stringify(player);
+      localStorage.profile = str;
+    }
   }
 }

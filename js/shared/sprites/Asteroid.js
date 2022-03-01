@@ -1,12 +1,12 @@
 /**
- * Class for the bullet is sent by the player ship
+ * Class for Game asteroid. This class will be used
+ * for small asteroids with 3 health and large asteroids with 6 health
  */
 class Asteroid extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
     super(scene, x, y, SM_ASTEROID_SPRITE);
     this.initPhysics(); // start physics for playter -allows for movement and collision detection
-    this.speed = SM_ASTEROID_SPEED; // set default speed;
-    this.health = SM_ASTEROID_HEALTH; // set default health
+
   }
 
   initPhysics() {
@@ -19,13 +19,11 @@ class Asteroid extends Phaser.Physics.Arcade.Sprite {
    * @param {*} x
    */
   spawn(x) {
-    this.setPosition(x, -100);
+    this.setPosition(x, -10);
 
     this.setActive(true);
     this.setVisible(true);
     this.setDepth(1);
-
-    console.log(this.speed);
   }
 
   /**
@@ -60,28 +58,10 @@ class Asteroid extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  /**
-   * Updates the asteroid frame state based on health
-   *
-   * @param {*} bullet
-   */
-  collisionHandler() {
-    // detect health of asteroid
-    if (this.health === 3) {
-      this.health -= 1;
-      this.setFrame(1);
-    } else if (this.health === 2) {
-      this.health -= 1;
-      this.setFrame(2);
-    } else {
-      this.destroy(); // no more health destroy
-    }
-  }
-
   hide() {
     this.setVisible(false);
     this.setActive(false);
-    this.setPosition(-100, -100);
+    this.setPosition(-1000, -1000);
     this.setVelocity(0);
   }
 }

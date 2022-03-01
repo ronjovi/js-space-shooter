@@ -11,7 +11,7 @@
   color: #f9f0d9;
   font-family: "Rationale", sans-serif;
   font-size: 23px;
-  transition: all ease-in-out 200ms;
+  transition: color ease-in-out 200ms;
 }
 
 .navbar {
@@ -22,6 +22,8 @@
   width: 100%;
   background-color: #201f35;
   border-bottom: solid 2px #f9f0d9;
+  top:0;
+
 }
 
 #logo {

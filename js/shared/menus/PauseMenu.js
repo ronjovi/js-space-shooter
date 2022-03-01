@@ -1,5 +1,5 @@
 /**
- *
+ * Pause menu. User can choose to resume the game or quit to main menu
  */
 class PauseMenu {
   constructor(scene) {
@@ -15,11 +15,6 @@ class PauseMenu {
       .setVisible(false)
       .setDepth(-1);
 
-    // adds instructions link
-    this.instructionsLink = scene.add
-      .text(0, 0, "INSTRUCTIONS (TBA)", MENU_LINK_STYLES)
-      .setVisible(false)
-      .setDepth(-1);
 
     // adds quit link
     this.quitLink = scene.add
@@ -39,6 +34,7 @@ class PauseMenu {
       this.hide(scene);
       scene.gameSceneGraphics.clear();
       scene.isPaused = false;
+      scene.gameClock.paused = false;
     });
 
     /**
@@ -59,8 +55,8 @@ class PauseMenu {
 
     // quits the game
     this.quitLink.on("pointerdown", (pointer) => {
-      document.querySelector("#game-loader").style.opacity = 1;
-      document.querySelector("#game-loader").style.display = "flex";
+      document.querySelector("#loader").style.opacity = 1;
+      document.querySelector("#loader").style.display = "flex";
       scene.quitGame();
     });
 
@@ -89,7 +85,6 @@ class PauseMenu {
     scene.gameSceneGraphics.clear();
     this.logo.setVisible(false).setDepth(-1);
     this.resumeLink.setVisible(false).setDepth(-1).setInteractive(false);
-    this.instructionsLink.setVisible(false).setDepth(-1).setInteractive(false);
     this.quitLink.setVisible(false).setDepth(-1).setInteractive(false);
   }
 
@@ -116,16 +111,9 @@ class PauseMenu {
       .setDepth(3)
       .setInteractive({ useHandCursor: true });
 
-    // make instructions link visible
-    this.instructionsLink
-      .setPosition(width / 2 - this.instructionsLink.width / 2, height * 0.45)
-      .setVisible(true)
-      .setDepth(3)
-      .setInteractive({ useHandCursor: true });
-
     // make quit link visible
     this.quitLink
-      .setPosition(width / 2 - this.quitLink.width / 2, height * 0.5)
+      .setPosition(width / 2 - this.quitLink.width / 2, height * 0.45)
       .setVisible(true)
       .setDepth(3)
       .setInteractive({ useHandCursor: true });

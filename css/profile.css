@@ -26,6 +26,12 @@
   padding: 1rem 1rem;
   box-sizing: border-box;
   cursor: pointer;
+  height: 135px;
+}
+
+.ship img{
+  height: 100%;
+  object-fit: cover;
 }
 
 .ship:hover{
@@ -47,18 +53,41 @@
   height: 200px;
 }
 
-#count{
-  float: right;
+.count{
+  font-family: "Rationale", sans-serif;
+  position: absolute;
+  right: 18px;
+  font-size: 18px;
 }
 
 .control{
   margin-bottom: 20px;
 }
 
-.control label,
-.control p{
+.control label{
   font-family: "Rationale", sans-serif;
   font-weight: 500;
   font-size: 21px;
   margin-bottom: 5px;
+}
+
+.toast {
+  position: absolute;
+  right: 0px;
+  left: 0px !important;
+  margin:auto;
+  bottom: 45px !important;
+  top: auto  !important;
+  z-index: 999999;
+  background-color: #d1e7dd;
+  height: 50px;
+
+  font-family: "Rationale", sans-serif;
+  font-weight: 500;
+  font-size: 19px;
+}
+
+.err-message{
+  color: #f94a41;
+  display: none;
 }

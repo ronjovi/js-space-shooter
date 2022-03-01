@@ -31,16 +31,4 @@ class Explosion extends Phaser.Physics.Arcade.Sprite {
       this.setVisible(false);
     }, 350);
   }
-
-  update(time, delta) {
-    // if (!this.scene.isPaused) {
-    //     this.visible = true;
-    //     this.y += this.speed * delta;
-    //     if (this.y > window.innerHeight + 100) {
-    //         this.destroy();
-    //     }
-    // } else {
-    //     this.visible = false;
-    // }
-  }
 }

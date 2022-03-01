@@ -9,34 +9,49 @@ class StartScene extends Phaser.Scene {
     super({
       key: "StartScene",
     });
-
-    /**
-     * Sets placeholder data in case there is none in storage
-     *  name - string name of player
-     *  bio - string bio of player
-     *  highestScore - number the players current high score during session
-     *  ship - string texture of ship chosen by player
-     */
-    this.profile = PLAYER_PLACEHOLDER;
   }
 
+  /**
+   * Load all game assets
+   */
   preload() {
+    // load local profile
     this.loadFromStorage();
 
+    // loads plugin for the auto text scroller
+    this.load.scenePlugin({
+      key: "rexuiplugin",
+      url:
+        "https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js",
+      sceneKey: "rexUI",
+    });
+
     // load space background
-    this.load.image("space", "../../images/backgrounds/profile_background.png");
+    this.load.image(
+      "space",
+      "https://temp-assets-t.s3-us-west-1.amazonaws.com/profile_background.png"
+    );
 
-    this.load.spritesheet("embark", "../../images/gui/embark.png", {
-      frameWidth: 213,
-      frameHeight: 40.19,
-    });
+    // load embark btn
+    this.load.spritesheet(
+      "embark",
+      "https://temp-assets-t.s3-us-west-1.amazonaws.com/embark.png",
+      {
+        frameWidth: 213,
+        frameHeight: 40.19,
+      }
+    );
 
-    this.load.spritesheet("go-back", "../../images/gui/go-back.png", {
-      frameWidth: 213,
-      frameHeight: 40.19,
-    });
+    // load go back btn
+    this.load.spritesheet(
+      "go-back",
+      "https://temp-assets-t.s3-us-west-1.amazonaws.com/go-back.png",
+      {
+        frameWidth: 213,
+        frameHeight: 40.19,
+      }
+    );
 
-    // load ship A
     // load ship A
     this.load.spritesheet(
       "player-ship-a",
@@ -58,12 +73,16 @@ class StartScene extends Phaser.Scene {
       { frameWidth: 95, frameHeight: 173.4 }
     );
 
+    // load google font
     this.load.script(
       "webfont",
       "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"
     );
   }
 
+  /**
+   * Creates all game objects
+   */
   create() {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -88,28 +107,33 @@ class StartScene extends Phaser.Scene {
       },
     });
 
-    /**
-     * Display menu
-     * Start Link - starts the game
-     * Instructions Link - shows instructions
-     */
-    //this.addProfile();
-    this.profileCard = new ProfileCard(this);
+    this.profileCard = new ProfileCard(this, width);
+    this.profileCard.hide();
     this.addEmbarkBtn();
     this.addBackBtn();
     this.addLogo(width);
     this.addStart(width, height);
-    this.addInstructions(width, height);
+    //this.addInstructions(width, height);
 
     this.hideLoader();
   }
 
   /**
-   * Loads
+   * Loads profile from storage if it exists
+   * otherwise sets the default profile data
    */
   loadFromStorage() {
     if (localStorage.profile) {
       this.profile = JSON.parse(localStorage.profile);
+    } else {
+      /**
+       * Sets placeholder data in case there is none in storage
+       *  name - string name of player
+       *  phrase - string player catch phrase
+       *  highestScore - number the players current high score during session
+       *  ship - string texture of ship chosen by player
+       */
+      this.profile = PLAYER_PLACEHOLDER;
     }
   }
 
@@ -136,9 +160,9 @@ class StartScene extends Phaser.Scene {
   }
 
   /**
-   * Adds start link to menu
-   * @param {*} width
-   * @param {*} height
+   * Adds new game link to menu
+   * @param {number} width viewport width
+   * @param {number} height viewport height
    */
   addStart(width, height) {
     // styles
@@ -152,10 +176,13 @@ class StartScene extends Phaser.Scene {
       .text(0, 0, "NEW GAME", styles)
       .setInteractive({ useHandCursor: true });
     // update pos
-    this.start.setPosition(width / 2 - this.start.width / 2, height * 0.35);
+    this.start.setPosition(
+      width / 2 - this.start.width / 2,
+      this.logo.y + this.logo.height + 30
+    );
 
     /**
-     * shows loader and navigates to game scene
+     *
      */
     this.start.on("pointerdown", () => {
       this.hideMenu();
@@ -207,7 +234,7 @@ class StartScene extends Phaser.Scene {
     // update pos
     this.instructions.setPosition(
       width / 2 - this.instructions.width / 2,
-      height * 0.4
+      this.start.y + this.start.height + 16
     );
 
     /**
@@ -240,15 +267,18 @@ class StartScene extends Phaser.Scene {
    * changes display to none after 300ms - we wait for fade out to finish
    */
   hideLoader() {
-    $("#game-loader").animate({ opacity: 0 }, 300, function () {
+    $("#loader").animate({ opacity: 0 }, 300, function () {
       setTimeout(() => {
         $(this).css({ display: "none" });
       }, 300);
     });
   }
 
+  /**
+   * Shows the embark and go back button
+   * @param {number} width viewport width
+   */
   showBtns(width) {
-
     this.embarkBtn
       .setPosition(width / 2 + this.embarkBtn.width / 1.5, 575)
       .setActive(true)
@@ -262,6 +292,9 @@ class StartScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
   }
 
+  /**
+   * Hides the embark and go back button
+   */
   hideBtns() {
     this.embarkBtn
       .setPosition(0, 0)
@@ -278,8 +311,8 @@ class StartScene extends Phaser.Scene {
 
   /**
    *
-   * @param {*} width
-   * @param {*} height
+   * @param {number} width viewport width
+   * @param {number} height view port height
    */
   addEmbarkBtn() {
     // adds edit button to the scene
@@ -288,37 +321,28 @@ class StartScene extends Phaser.Scene {
       .setActive(false)
       .setVisible(false);
 
-    /**
-     * adds on click event handler to the ship swap button
-     * opens modal where user can select their ship
-     */
+    // listen for button clicks -> starts level one
     this.embarkBtn.on("pointerdown", () => {
-      $("#game-loader").css({ opacity: 1, display: "flex" });
+      $("#loader").css({ opacity: 1, display: "flex" });
       this.scene.start("LevelOneScene");
-      console.log("embark");
     });
 
-    /**
-     * Adds hover event handler to button
-     * Changes color to red on hover
-     */
-    this.embarkBtn.on("pointerover", (pointer) => {
+    // listen for hover -> changes color to red
+    this.embarkBtn.on("pointerover", () => {
       this.embarkBtn.setFrame(1);
     });
 
-    /**
-     * Adds no hover event handler to button
-     * Changes color to white on no hover
-     */
-    this.embarkBtn.on("pointerout", (pointer) => {
+    // listen for no hover -> changes color to white
+    this.embarkBtn.on("pointerout", () => {
       this.embarkBtn.setFrame(0);
     });
   }
 
   /**
-   *
-   * @param {*} width
-   * @param {*} height
+   * Adds back button to screen. this allows user
+   * to go back to previous menu
+   * @param {number} width
+   * @param {number} height
    */
   addBackBtn() {
     // adds edit button to the scene
@@ -327,34 +351,26 @@ class StartScene extends Phaser.Scene {
       .setActive(false)
       .setVisible(false);
 
-    /**
-     * adds on click event handler to the ship swap button
-     * opens modal where user can select their ship
-     */
+    // listen for clicks on button
     this.backBtn.on("pointerdown", () => {
       this.profileCard.hide();
+      this.hideBtns();
       this.showMenu();
     });
 
-    /**
-     * Adds hover event handler to button
-     * Changes color to red on hover
-     */
-    this.backBtn.on("pointerover", (pointer) => {
+    // listen for hover -> changes color to red
+    this.backBtn.on("pointerover", () => {
       this.backBtn.setFrame(1);
     });
 
-    /**
-     * Adds no hover event handler to button
-     * Changes color to white on no hover
-     */
-    this.backBtn.on("pointerout", (pointer) => {
+    //listen for no hover -> changes color to white
+    this.backBtn.on("pointerout", () => {
       this.backBtn.setFrame(0);
     });
   }
 
   /**
-   *
+   * Shows the menu items (logo and game link)
    */
   showMenu() {
     this.logo.setVisible(true);
@@ -363,14 +379,12 @@ class StartScene extends Phaser.Scene {
     this.start.setVisible(true);
     this.start.setActive(true);
 
-    this.instructions.setVisible(true);
-    this.instructions.setActive(true);
-
-    this.hideBtns();
+    // this.instructions.setVisible(true);
+    // this.instructions.setActive(true);
   }
 
   /**
-   *
+   * Hides the menu items (logo and new game link)
    */
   hideMenu() {
     this.logo.setVisible(false);
@@ -379,8 +393,8 @@ class StartScene extends Phaser.Scene {
     this.start.setVisible(false);
     this.start.setActive(false);
 
-    this.instructions.setVisible(false);
-    this.instructions.setActive(false);
+    //this.instructions.setVisible(false);
+    //this.instructions.setActive(false);
   }
 
   /**
@@ -394,18 +408,37 @@ class StartScene extends Phaser.Scene {
     this.cameras.resize(width, height);
     this.bg.setSize(width, height);
 
+    // re position logo
     this.logo.setPosition(width / 2 - this.logo.width / 2, LOGO_OFFSET);
-    this.profileCard.resize(this, width);
+    // re position start link
+    this.start.setPosition(
+      width / 2 - this.start.width / 2,
+      this.logo.y + this.logo.height + 30
+    );
+    // re position the instructions link
+    this.instructions.setPosition(
+      width / 2 - this.instructions.width / 2,
+      this.start.y + this.start.height + 16
+    );
 
+    // reposition the action buttons
     this.backBtn.setPosition(width / 2 - this.backBtn.width / 1.5, 575);
     this.embarkBtn.setPosition(width / 2 + this.embarkBtn.width / 1.5, 575);
 
-    // update pos
-    this.start.setPosition(width / 2 - this.start.width / 2, height * 0.35);
-    // update pos
-    this.instructions.setPosition(
-      width / 2 - this.instructions.width / 2,
-      height * 0.4
-    );
+    this.profileCard.resize(this, width);
+  }
+
+  /**
+   * Shows a black transparent overlay that makes it easier
+   * to read the text on the screen
+   * @param {number} width
+   * @param {number} height
+   */
+  showOverlay(width, height, alpha) {
+    // sets fill color to black
+    this.gameSceneGraphics.fillStyle(0x000000, alpha);
+    // adds a black transparent layer
+    this.overlay = this.gameSceneGraphics.fillRect(0, 0, width, height);
+    this.overlay.setDepth(2).setVisible(true);
   }
 }

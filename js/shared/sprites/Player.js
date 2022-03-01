@@ -7,7 +7,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.visible = true; // show user
     this.sprite = sprite;
-    this.fireRate = PLAYER_FIRE_RATE_DEAFULT;
+    this.fireRate = PLAYER_FIRE_RATE_X2;
     this.lastBulletFired = 0;
     this.addHealthbar(scene);
     this.initPlayerPhysics(scene); // start physics for playter -allows for movement and collision detection
@@ -31,6 +31,10 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     );
   }
 
+  /**
+   * Updates the remaining health in health bar
+   * @param {number} damage number to decrease by
+   */
   updateHealthBar(damage){
     this.hp.updateHealth(damage);
   }
@@ -61,10 +65,6 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     this.setScale(1);
   }
 
-  update() {
-    console.log("playere update");
-  }
-
   /**
    * Pauses the player idle animation
    */
@@ -83,28 +83,28 @@ class Player extends Phaser.Physics.Arcade.Sprite {
    * Moves the player ship up
    */
   moveDown() {
-    this.body.setVelocityY(PLAYER_VELOCITY_DEFAULT);
+    this.body.setVelocityY(PLAYER_VELOCITY_X2);
   }
 
   /**
    * Moves the player ship down
    */
   moveUp() {
-    this.body.setVelocityY(-1 * PLAYER_VELOCITY_DEFAULT);
+    this.body.setVelocityY(-1 * PLAYER_VELOCITY_X2);
   }
 
   /**
    * Moves the player ship right
    */
   moveRight() {
-    this.body.setVelocityX(PLAYER_VELOCITY_DEFAULT);
+    this.body.setVelocityX(PLAYER_VELOCITY_X2);
   }
 
   /**
    * Moves the player ship left
    */
   moveLeft() {
-    this.body.setVelocityX(-1 * PLAYER_VELOCITY_DEFAULT);
+    this.body.setVelocityX(-1 * PLAYER_VELOCITY_X2);
   }
 
   /**
@@ -137,13 +137,5 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.lastBulletFired = time + this.fireRate; // update fire delay timestamp
       }
     }
-  }
-
-  decreaseHealth(damage) {
-    this.health = this.health - damage;
-  }
-
-  hideHP(){
-    
   }
 }
